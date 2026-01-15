@@ -23,7 +23,7 @@ class WhiteAgent:
     def __init__(self):
         self.agent = Agent(
             name="hepex_white_agent",
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             generate_content_config=types.GenerateContentConfig(
                 temperature=0.0,
                 max_output_tokens=8192
