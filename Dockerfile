@@ -33,9 +33,16 @@ WORKDIR /home/agent
 ENV HOME=/home/agent
 
 # ----------------------------
+# Install analysis environment
+# ----------------------------
+RUN python -m venv .ana-venv \
+ && source .ana-venv/bin/activate \
+ && pip install xrootd atlasopenmagic uproot awkward vector matplotlib mplhep pyyaml tqdm \
+ && python3 -c "import sys; from atlasopenmagic import install_from_environment; install_from_environment()"
+
+# ----------------------------
 # Install OpenHarness
 # ----------------------------
-WORKDIR /home/agent
 RUN curl -fsSL https://raw.githubusercontent.com/HKUDS/OpenHarness/main/scripts/install.sh | bash -s -- --from-source --with-channels
 
 # Monkey patch OpenHarness OpenAI client

@@ -37,7 +37,7 @@ Don't ask permission. Just do it.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -82,7 +82,7 @@ Don't ask permission. Just do it.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -123,7 +123,7 @@ Don't ask permission. Just do it.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -164,7 +164,7 @@ Don't ask permission. Just do it.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -209,7 +209,7 @@ Don't ask permission. Just do it.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -254,7 +254,7 @@ Don't ask permission. Just do it.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -300,7 +300,7 @@ Don't ask permission. Just do it.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn subagent to run skill `ana-create-data-loader`, pass the following complete metadata to the subagent prompt>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
