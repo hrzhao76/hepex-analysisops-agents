@@ -338,8 +338,8 @@ Don't ask permission. Just do it.
 ## Output Format
 
 If user specificlly request formatted JSON and MD outputs:
-1. Read file: `$HOME/ouptut/submission_contarct.json` or `$HOME/submission_contract.json`
-2. Strictly follow the format of submission_contarct.json, fill all the fields, DO NOT skip any fileds. If no relevant content, fill in "N/A" or "None".
+1. Read file: `$HOME/ouptut/submission_contract.json` or `$HOME/submission_contract.json`
+2. Strictly follow the format of submission_contract.json, fill all the fields, DO NOT skip any fileds. If no relevant content, fill in "N/A" or "None".
 
 ## Make It Yours
 
