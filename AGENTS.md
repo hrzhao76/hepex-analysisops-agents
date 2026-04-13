@@ -335,6 +335,12 @@ Don't ask permission. Just do it.
   </sub-task>
 </workflow>
 
+## Output Format
+
+If user specificlly request formatted JSON and MD outputs:
+1. Read file: `$HOME/ouptut/submission_contarct.json` or `$HOME/submission_contract.json`
+2. Strictly follow the format of submission_contarct.json, fill all the fields, DO NOT skip any fileds. If no relevant content, fill in "N/A" or "None".
+
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
