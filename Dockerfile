@@ -25,9 +25,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
  && rm -rf /var/lib/apt/lists/*
 
 # ----------------------------
-# Create non-root user
+# Create non-root user & grant sudo
 # ----------------------------
-RUN adduser --disabled-password --gecos "" agent
+RUN adduser --disabled-password --gecos "" agent \
+ && echo "agent ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/agent \
+ && chmod 0440 /etc/sudoers.d/agent
+ 
 USER agent
 WORKDIR /home/agent
 ENV HOME=/home/agent
