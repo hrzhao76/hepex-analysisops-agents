@@ -73,6 +73,6 @@ RUN --mount=type=cache,target=/home/agent/.cache/uv,uid=1000 \
 # ----------------------------
 ENV PATH="/home/agent/.openharness-venv/bin:/home/agent/.local/bin:$PATH"
 
-ENTRYPOINT ["uv", "run", "src/server.py", "--log-level", "DEBUG"]
+ENTRYPOINT ["uv", "run", "src/server.py"]
 CMD ["--host", "0.0.0.0"]
 EXPOSE 9009

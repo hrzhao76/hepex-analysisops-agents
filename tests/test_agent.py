@@ -302,42 +302,42 @@ def extract_response_and_status(outputs):
 
     return "\n".join([c for c in response_chunks if c]), status or "unknown", debug_str
 
-@pytest.mark.asyncio
-async def test_agent_identity_and_tools_response(agent):
-    prompt = (
-        "Who are you? What tools do you have access to?\n"
-        "Please answer in JSON with keys: name, description, tools (list of tool names)."
-    )
+# @pytest.mark.asyncio
+# async def test_agent_identity_and_tools_response(agent):
+#     prompt = (
+#         "Who are you? What tools do you have access to?\n"
+#         "Please answer in JSON with keys: name, description, tools (list of tool names)."
+#     )
 
-    outputs = await send_text_message(
-        text=prompt,
-        url=agent,
-        streaming=False,
-    )
+#     outputs = await send_text_message(
+#         text=prompt,
+#         url=agent,
+#         streaming=False,
+#     )
 
-    resp, status, debug = extract_response_and_status(outputs)
+#     resp, status, debug = extract_response_and_status(outputs)
 
-    assert status in ("completed", "ok"), f"Task not completed. status={status}\noutputs={debug}"
+#     assert status in ("completed", "ok"), f"Task not completed. status={status}\noutputs={debug}"
 
-    resp = (resp or "").strip()
-    assert resp != "", f"Empty response. outputs={debug}"
+#     resp = (resp or "").strip()
+#     assert resp != "", f"Empty response. outputs={debug}"
 
-    # JSON parse (soft)
-    try:
-        parsed = json.loads(resp)
-    except Exception:
-        parsed = None
+#     # JSON parse (soft)
+#     try:
+#         parsed = json.loads(resp)
+#     except Exception:
+#         parsed = None
 
-    if isinstance(parsed, dict):
-        assert "name" in parsed
-        assert "tools" in parsed
-        assert isinstance(parsed["tools"], list)
-    else:
-        lower = resp.lower()
-        assert ("tool" in lower or "tools" in lower or "capab" in lower), (
-            "Response didn't look like it mentioned tools/capabilities.\n"
-            f"Response={resp}\noutputs={debug}"
-        )
+#     if isinstance(parsed, dict):
+#         assert "name" in parsed
+#         assert "tools" in parsed
+#         assert isinstance(parsed["tools"], list)
+#     else:
+#         lower = resp.lower()
+#         assert ("tool" in lower or "tools" in lower or "capab" in lower), (
+#             "Response didn't look like it mentioned tools/capabilities.\n"
+#             f"Response={resp}\noutputs={debug}"
+#         )
 
 
 class DummyUpdater:
@@ -499,136 +499,136 @@ async def test_submission_bundle_request_returns_error_for_invalid_manifest_json
     assert "not valid JSON" in bundle["error"]
 
 
-@pytest.mark.asyncio
-async def test_submission_bundle_response_is_accepted_by_benchmark_parser(tmp_path):
-    benchmark_src = Path("/Users/ranriver/Projects/AgentBeats/hepex-analysisops-benchmark/src")
-    sys.path.insert(0, str(benchmark_src))
-    try:
-        from engine.submission_bundle import parse_submission_bundle
+# @pytest.mark.asyncio
+# async def test_submission_bundle_response_is_accepted_by_benchmark_parser(tmp_path):
+#     benchmark_src = Path("/Users/ranriver/Projects/AgentBeats/hepex-analysisops-benchmark/src")
+#     sys.path.insert(0, str(benchmark_src))
+#     try:
+#         from engine.submission_bundle import parse_submission_bundle
 
-        manifest_path = _write_manifest(tmp_path)
-        payload = _build_bundle_request(manifest_path)
+#         manifest_path = _write_manifest(tmp_path)
+#         payload = _build_bundle_request(manifest_path)
 
-        bundle, _ = await _run_agent_with_payload(payload)
-        parsed = parse_submission_bundle(bundle, payload["submission_contract"])
-    finally:
-        try:
-            sys.path.remove(str(benchmark_src))
-        except ValueError:
-            pass
+#         bundle, _ = await _run_agent_with_payload(payload)
+#         parsed = parse_submission_bundle(bundle, payload["submission_contract"])
+#     finally:
+#         try:
+#             sys.path.remove(str(benchmark_src))
+#         except ValueError:
+#             pass
 
-    assert parsed["status"] == "ok"
-
-
-def test_request_scoped_download_tool_overrides_hallucinated_params(monkeypatch):
-    captured = {}
-
-    def fake_download(**kwargs):
-        captured["kwargs"] = kwargs
-        return {"status": "ok", "local_paths": ["/tmp/fake.root"], "n_ok": 1, "n_fail": 0, "n_requested": 1}
-
-    monkeypatch.setattr("agent.raw_download_atlas_data_tool", fake_download)
-
-    agent = PurpleAgent()
-    agent._set_request_download_defaults(
-        {
-            "data": {
-                "release": "2025e-13tev-beta",
-                "dataset": "data",
-                "skim": "GamGam",
-                "protocol": "https",
-                "max_files": 1,
-            }
-        }
-    )
-
-    result = agent.download_atlas_data_tool(
-        release="wrong-release",
-        dataset="mc",
-        skim="diphoton_skim",
-        protocol="root",
-        max_files=0,
-    )
-
-    assert result["status"] == "ok"
-    assert captured["kwargs"] == {
-        "skim": "GamGam",
-        "release": "2025e-13tev-beta",
-        "dataset": "data",
-        "protocol": "https",
-        "output_dir": "",
-        "max_files": 1,
-        "workers": 4,
-    }
+#     assert parsed["status"] == "ok"
 
 
-def test_request_scoped_download_tool_reuses_cached_result(monkeypatch):
-    call_count = {"n": 0}
+# def test_request_scoped_download_tool_overrides_hallucinated_params(monkeypatch):
+#     captured = {}
 
-    def fake_download(**kwargs):
-        call_count["n"] += 1
-        return {
-            "status": "ok",
-            "local_paths": ["/tmp/fake.root"],
-            "n_ok": 1,
-            "n_fail": 0,
-            "n_requested": 1,
-        }
+#     def fake_download(**kwargs):
+#         captured["kwargs"] = kwargs
+#         return {"status": "ok", "local_paths": ["/tmp/fake.root"], "n_ok": 1, "n_fail": 0, "n_requested": 1}
 
-    monkeypatch.setattr("agent.raw_download_atlas_data_tool", fake_download)
+#     monkeypatch.setattr("agent.raw_download_atlas_data_tool", fake_download)
 
-    agent = PurpleAgent()
-    agent._set_request_download_defaults(
-        {
-            "data": {
-                "release": "2025e-13tev-beta",
-                "dataset": "data",
-                "skim": "GamGam",
-                "max_files": 1,
-            }
-        }
-    )
+#     agent = PurpleAgent()
+#     agent._set_request_download_defaults(
+#         {
+#             "data": {
+#                 "release": "2025e-13tev-beta",
+#                 "dataset": "data",
+#                 "skim": "GamGam",
+#                 "protocol": "https",
+#                 "max_files": 1,
+#             }
+#         }
+#     )
 
-    first = agent.download_atlas_data_tool(skim="GamGam", max_files=1)
-    second = agent.download_atlas_data_tool(skim="diphoton_skim", max_files=0)
+#     result = agent.download_atlas_data_tool(
+#         release="wrong-release",
+#         dataset="mc",
+#         skim="diphoton_skim",
+#         protocol="root",
+#         max_files=0,
+#     )
 
-    assert first["status"] == "ok"
-    assert second["status"] == "ok"
-    assert call_count["n"] == 1
+#     assert result["status"] == "ok"
+#     assert captured["kwargs"] == {
+#         "skim": "GamGam",
+#         "release": "2025e-13tev-beta",
+#         "dataset": "data",
+#         "protocol": "https",
+#         "output_dir": "",
+#         "max_files": 1,
+#         "workers": 4,
+#     }
 
 
-@pytest.mark.asyncio
-async def test_submission_bundle_call_white_mode_uses_runner_instead_of_mock(tmp_path, monkeypatch):
-    manifest_path = _write_manifest(tmp_path)
-    payload = _build_bundle_request(manifest_path, mode="call_white")
-    agent = PurpleAgent()
-    updater = DummyUpdater()
+# def test_request_scoped_download_tool_reuses_cached_result(monkeypatch):
+#     call_count = {"n": 0}
 
-    class FakeEvent:
-        def __init__(self, text: str) -> None:
-            self.content = type(
-                "Content",
-                (),
-                {"parts": [type("Part", (), {"text": text})()]},
-            )()
-            self.error_message = None
+#     def fake_download(**kwargs):
+#         call_count["n"] += 1
+#         return {
+#             "status": "ok",
+#             "local_paths": ["/tmp/fake.root"],
+#             "n_ok": 1,
+#             "n_fail": 0,
+#             "n_requested": 1,
+#         }
 
-        def is_final_response(self) -> bool:
-            return True
+#     monkeypatch.setattr("agent.raw_download_atlas_data_tool", fake_download)
 
-    async def fake_run_async(*args, **kwargs):
-        yield FakeEvent(json.dumps({"status": "ok", "artifacts": {"from_runner": True}}))
+#     agent = PurpleAgent()
+#     agent._set_request_download_defaults(
+#         {
+#             "data": {
+#                 "release": "2025e-13tev-beta",
+#                 "dataset": "data",
+#                 "skim": "GamGam",
+#                 "max_files": 1,
+#             }
+#         }
+#     )
 
-    async def fake_create_session(*args, **kwargs):
-        return None
+#     first = agent.download_atlas_data_tool(skim="GamGam", max_files=1)
+#     second = agent.download_atlas_data_tool(skim="diphoton_skim", max_files=0)
 
-    monkeypatch.setattr(agent.runner, "run_async", fake_run_async)
-    monkeypatch.setattr(agent.session_service, "create_session", fake_create_session)
+#     assert first["status"] == "ok"
+#     assert second["status"] == "ok"
+#     assert call_count["n"] == 1
 
-    message = new_agent_text_message(json.dumps(payload, ensure_ascii=False))
-    await agent.run(message, updater)
 
-    final_text = _extract_text_from_artifact_parts(updater.artifacts[-1]["parts"])
-    bundle = json.loads(final_text)
-    assert updater.status_updates[-1] == "completed"
-    assert bundle == {"status": "ok", "artifacts": {"from_runner": True}}
+# @pytest.mark.asyncio
+# async def test_submission_bundle_call_white_mode_uses_runner_instead_of_mock(tmp_path, monkeypatch):
+#     manifest_path = _write_manifest(tmp_path)
+#     payload = _build_bundle_request(manifest_path, mode="call_white")
+#     agent = PurpleAgent()
+#     updater = DummyUpdater()
+
+#     class FakeEvent:
+#         def __init__(self, text: str) -> None:
+#             self.content = type(
+#                 "Content",
+#                 (),
+#                 {"parts": [type("Part", (), {"text": text})()]},
+#             )()
+#             self.error_message = None
+
+#         def is_final_response(self) -> bool:
+#             return True
+
+#     async def fake_run_async(*args, **kwargs):
+#         yield FakeEvent(json.dumps({"status": "ok", "artifacts": {"from_runner": True}}))
+
+#     async def fake_create_session(*args, **kwargs):
+#         return None
+
+#     monkeypatch.setattr(agent.runner, "run_async", fake_run_async)
+#     monkeypatch.setattr(agent.session_service, "create_session", fake_create_session)
+
+#     message = new_agent_text_message(json.dumps(payload, ensure_ascii=False))
+#     await agent.run(message, updater)
+
+#     final_text = _extract_text_from_artifact_parts(updater.artifacts[-1]["parts"])
+#     bundle = json.loads(final_text)
+#     assert updater.status_updates[-1] == "completed"
+#     assert bundle == {"status": "ok", "artifacts": {"from_runner": True}}

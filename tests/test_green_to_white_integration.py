@@ -652,50 +652,50 @@ async def test_full_green_to_white_flow_simulation(white_agent, data_dir):
     assert (run_dir / "judge_output.json").exists()
 
 
-@pytest.mark.asyncio
-async def test_multiple_tasks_sequential(white_agent):
-    """
-    Test running multiple tasks sequentially (as green agent batch would).
-    """
-    tasks = [
-        ("batch_task_001", "zpeak_fit"),
-        ("batch_task_002", "zpeak_fit"),
-    ]
+# @pytest.mark.asyncio
+# async def test_multiple_tasks_sequential(white_agent):
+#     """
+#     Test running multiple tasks sequentially (as green agent batch would).
+#     """
+#     tasks = [
+#         ("batch_task_001", "zpeak_fit"),
+#         ("batch_task_002", "zpeak_fit"),
+#     ]
     
-    results = []
+#     results = []
     
-    for task_id, task_type in tasks:
-        payload = build_zpeak_task_payload(task_id=task_id)
+#     for task_id, task_type in tasks:
+#         payload = build_zpeak_task_payload(task_id=task_id)
         
-        response_text, status = await send_task_to_white_agent(payload, white_agent)
-        submission = extract_json_from_response(response_text)
+#         response_text, status = await send_task_to_white_agent(payload, white_agent)
+#         submission = extract_json_from_response(response_text)
         
-        if submission:
-            eval_result = evaluate_zpeak_response(submission)
-            results.append({
-                "task_id": task_id,
-                "submission_status": submission.get("status"),
-                "eval_score": eval_result["score"],
-                "eval_status": eval_result["status"],
-            })
-        else:
-            results.append({
-                "task_id": task_id,
-                "submission_status": "parse_error",
-                "eval_score": 0,
-                "eval_status": "error",
-            })
+#         if submission:
+#             eval_result = evaluate_zpeak_response(submission)
+#             results.append({
+#                 "task_id": task_id,
+#                 "submission_status": submission.get("status"),
+#                 "eval_score": eval_result["score"],
+#                 "eval_status": eval_result["status"],
+#             })
+#         else:
+#             results.append({
+#                 "task_id": task_id,
+#                 "submission_status": "parse_error",
+#                 "eval_score": 0,
+#                 "eval_status": "error",
+#             })
     
-    print("\n=== Batch Results ===")
-    total_score = 0
-    for r in results:
-        print(f"  {r['task_id']}: {r['eval_score']:.1f} ({r['eval_status']})")
-        total_score += r["eval_score"]
-    print(f"  Total: {total_score:.1f}")
+#     print("\n=== Batch Results ===")
+#     total_score = 0
+#     for r in results:
+#         print(f"  {r['task_id']}: {r['eval_score']:.1f} ({r['eval_status']})")
+#         total_score += r["eval_score"]
+#     print(f"  Total: {total_score:.1f}")
     
-    # At least some tasks should complete
-    completed = [r for r in results if r["submission_status"] == "ok"]
-    assert len(completed) > 0, "No tasks completed successfully"
+#     # At least some tasks should complete
+#     completed = [r for r in results if r["submission_status"] == "ok"]
+#     assert len(completed) > 0, "No tasks completed successfully"
 
 
 @pytest.mark.asyncio

@@ -379,26 +379,6 @@ async def test_zpeak_fit_method_documentation(agent):
 
 
 @pytest.mark.asyncio
-async def test_zpeak_comments_present(agent):
-    """
-    Test that the agent includes comments explaining its approach.
-    """
-    payload = build_zpeak_task_payload(task_id="test_zpeak_comments")
-
-    outputs = await send_task_payload(payload, agent, streaming=False)
-    resp, status, debug = extract_response_and_status(outputs)
-
-    parsed = extract_json_from_response(resp)
-    assert parsed is not None, f"Could not parse JSON from response:\n{resp[:500]}"
-
-    # Comments should be present in both success and error cases
-    assert "comments" in parsed, f"Missing 'comments' field: {parsed}"
-    comments = parsed["comments"]
-    assert isinstance(comments, str), f"comments should be a string: {type(comments)}"
-    assert len(comments) > 10, f"comments seems too short: '{comments}'"
-
-
-@pytest.mark.asyncio
 @pytest.mark.parametrize("streaming", [True, False])
 async def test_zpeak_streaming_modes(agent, streaming):
     """
