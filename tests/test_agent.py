@@ -343,11 +343,16 @@ def extract_response_and_status(outputs):
 class DummyUpdater:
     def __init__(self) -> None:
         self.status_updates: list[str] = []
+        self.status_messages: list[str] = []
         self.artifacts: list[dict[str, Any]] = []
 
     async def update_status(self, state, message) -> None:
         value = getattr(state, "value", str(state))
         self.status_updates.append(str(value))
+        try:
+            self.status_messages.append(message.parts[0].root.text)
+        except Exception:
+            self.status_messages.append("")
 
     async def add_artifact(self, parts, name) -> None:
         self.artifacts.append({"parts": parts, "name": name})

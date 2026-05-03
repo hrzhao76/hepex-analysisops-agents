@@ -59,8 +59,8 @@ RUN sed -i 's/"max_tokens": request.max_tokens,/"max_completion_tokens": request
 # ----------------------------
 COPY --chown=agent:agent pyproject.toml uv.lock README.md ./
 COPY --chown=agent:agent src src
-COPY --chown=agent:agent skills/sm-ana-aod /home/agent/.openharness/skills
-COPY --chown=agent:agent AGENTS.md AGENTS.md
+COPY --chown=agent:agent src/agent_01_oh/skills/sm-ana-aod /home/agent/.openharness/skills
+COPY --chown=agent:agent src/agent_01_oh/AGENTS.md AGENTS.md
 
 # ----------------------------
 # Install app dependencies with uv first

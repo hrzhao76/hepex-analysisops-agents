@@ -1,3 +1,3 @@
-[submodule "skills/sm-ana-aod"]
-	path = skills/sm-ana-aod
+[submodule "src/agent_01_oh/skills/sm-ana-aod"]
+	path = src/agent_01_oh/skills/sm-ana-aod
 	url = https://github.com/HEPSkills/sm-ana-aod.git

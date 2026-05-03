@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
+from pathlib import Path
 from typing import Any
 
 from a2a.server.tasks import TaskUpdater
@@ -18,6 +18,15 @@ from bundle_runtime import (
     request_mode,
     should_mock_submission_bundle,
 )
+from solver_backends import (
+    get_solver_backend,
+    resolve_solver_backend_name,
+    resolve_work_dir,
+    summarize_contract,
+    summarize_manifest,
+    summarize_request,
+    summarize_response,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,23 +34,37 @@ logger = logging.getLogger(__name__)
 class PurpleAgent:
     def __init__(self):
         self.app_name = "hepex_analysisops"
+        prompt_candidates = [
+            Path(__file__).resolve().parent / "agent_01_oh" / "AGENTS.md",
+            Path("./AGENTS.md"),
+        ]
         try:
-            with open("./AGENTS.md", "r", encoding="utf-8") as f:
-                self.system_prompt = f.read().strip()
+            for prompt_path in prompt_candidates:
+                if prompt_path.exists():
+                    self.system_prompt = prompt_path.read_text(encoding="utf-8").strip()
+                    break
+            else:
+                raise FileNotFoundError("No AGENTS.md prompt found")
         except Exception as e:
-            logger.error(f"Failed to read ./AGENTS.md: {e}")
+            logger.error(f"Failed to read OpenHarness system prompt: {e}")
             self.system_prompt = "You are a physics analysis agent."
-
-    @staticmethod
-    def _debug_log(blocks: list[tuple[str, str]]) -> None:
-        with open("debug_oh_output.log", "a", encoding="utf-8") as f:
-            for title, content in blocks:
-                f.write(f"{title}:\n{content}\n")
-            f.write("=" * 40 + "\n")
 
     @staticmethod
     def _json_dump(payload: Any) -> str:
         return json.dumps(payload, ensure_ascii=False, indent=2)
+
+    @staticmethod
+    async def _working_status(updater: TaskUpdater | None, text: str) -> None:
+        logger.info("Purple solver status: %s", text)
+        if updater is None:
+            return
+        try:
+            await updater.update_status(
+                TaskState.working,
+                new_agent_text_message(text),
+            )
+        except Exception:
+            logger.exception("Failed to emit Purple solver status update")
 
     def _build_bundle_prompt(
         self,
@@ -53,14 +76,22 @@ class PurpleAgent:
         data_info = req_json.get("data", {})
         constraints = req_json.get("constraints", {})
         mode = request_mode(req_json)
+        solver_backend = resolve_solver_backend_name(req_json)
 
         sections = [
             prompt.strip(),
             "",
             "Additional runtime context from the benchmark:",
             f"- request_mode: {mode}",
+            f"- solver_backend: {solver_backend}",
             f"- task_id: {req_json.get('task_id', '')}",
             f"- task_type: {req_json.get('task_type', '')}",
+            "",
+            "Working directory requirements:",
+            "- If request.data.work_dir or request.data.output_dir is set, use that directory as the analysis root.",
+            "- Put generated scripts, logs, plots, and intermediate task outputs under that analysis root.",
+            "- Do not write new task outputs into $HOME/output directly when an analysis root is provided.",
+            "- Reusable downloaded input data may still be cached separately when needed.",
             "",
             "You must return exactly one JSON object with this top-level shape:",
             '{',
@@ -70,7 +101,9 @@ class PurpleAgent:
             "",
             "Hard requirements:",
             "- Do not wrap the final JSON in markdown fences.",
-            "- The artifact keys must exactly match submission_contract.required_outputs[*].canonical_filename.",
+            "- The artifact keys must include every submission_contract.required_outputs[*].canonical_filename.",
+            "- The artifact keys may also include declared submission_contract.optional_outputs[*].canonical_filename.",
+            "- Do not include artifact keys that are not declared in the submission contract.",
             "- JSON artifacts must be JSON objects, and markdown artifacts must be plain strings.",
             "- If the task cannot be completed, return a JSON object with status=\"error\" and an explanatory error field.",
             "",
@@ -140,114 +173,50 @@ class PurpleAgent:
 
         return req_json, prompt, input_manifest, None
 
-    async def _run_oh(self, prompt: str, req_json: dict[str, Any] | None) -> str:
-        retry_delay = 2.0
-        max_retries = 5
-        final_text = None
-
-        for attempt in range(max_retries):
-            try:
-                cmd = [
-                    "oh",
-                    "--permission-mode",
-                    "full_auto",
-                    "--dangerously-skip-permissions",
-                    "--system-prompt",
-                    self.system_prompt,
-                    "--print",
-                    prompt,
-                ]
-
-                self._debug_log(
-                    [
-                        ("--- Request Metadata ---", self._json_dump(req_json or {})),
-                        ("--- Attempt ---", str(attempt + 1)),
-                        ("--- Prompt ---", prompt),
-                    ]
-                )
-
-                process = await asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                )
-
-                stdout, stderr = await process.communicate()
-                stdout_text = stdout.decode(errors="replace")
-                stderr_text = stderr.decode(errors="replace")
-
-                self._debug_log(
-                    [
-                        ("--- Attempt Result ---", str(attempt + 1)),
-                        ("STDOUT", stdout_text),
-                        ("STDERR", stderr_text),
-                    ]
-                )
-
-                if process.returncode == 0:
-                    final_text = stdout_text.strip()
-                    break
-
-                err_str = stderr_text.strip()
-                is_rate_limit = "429" in err_str or "RESOURCE_EXHAUSTED" in err_str
-                if is_rate_limit and attempt < max_retries - 1:
-                    logger.warning(
-                        "WhiteAgent: Rate limit hit. Retrying %s/%s...",
-                        attempt + 1,
-                        max_retries,
-                    )
-                    await asyncio.sleep(retry_delay)
-                    retry_delay = min(retry_delay * 2, 30.0)
-                    continue
-
-                final_text = self._json_dump(
-                    {
-                        "status": "error",
-                        "error": f"OpenHarness failed with exit code {process.returncode}: {err_str}",
-                    }
-                )
-                break
-
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    final_text = self._json_dump(
-                        {
-                            "status": "error",
-                            "error": f"Agent run failed: {type(e).__name__}: {e}",
-                        }
-                    )
-                await asyncio.sleep(retry_delay)
-
-        if final_text is None:
-            final_text = self._json_dump(
-                {"status": "error", "error": "No final response from OpenHarness wrapper"}
-            )
-
-        logger.debug("Output from OpenHarness:\n%s", final_text)
-        return final_text
-
     async def run(self, message: Message, updater: TaskUpdater) -> None:
         input_payload = get_message_text(message)
         req_json, prompt, input_manifest, early_response = self._prepare_request(input_payload)
+        work_dir = resolve_work_dir(req_json)
+        solver_backend_name = resolve_solver_backend_name(req_json)
 
         status_text = "Running analysis agent via OpenHarness..."
         if req_json and is_submission_bundle_request(req_json):
             bundle_mode = request_mode(req_json)
             if early_response is not None and should_mock_submission_bundle(req_json):
-                status_text = "Preparing deterministic submission_bundle_v1 response..."
+                status_text = "Preparing deterministic submission_bundle_v1 response."
             else:
                 manifest_note = ""
                 if input_manifest is not None:
                     manifest_note = f" ({len(input_manifest.get('files', []))} manifest file(s) visible)"
-                status_text = f"Running submission_bundle_v1 request via OpenHarness [{bundle_mode}]{manifest_note}..."
+                status_text = (
+                    f"Running submission_bundle_v1 request via solver_backend={solver_backend_name} "
+                    f"[{bundle_mode}]{manifest_note}."
+                )
 
         await updater.update_status(
             TaskState.working,
             new_agent_text_message(status_text),
         )
+        await self._working_status(updater, summarize_request(req_json, work_dir))
+        if req_json and is_submission_bundle_request(req_json):
+            await self._working_status(updater, summarize_contract(req_json))
+        if input_manifest is not None:
+            await self._working_status(updater, summarize_manifest(input_manifest))
 
         try:
-            final_text = early_response if early_response is not None else await self._run_oh(prompt, req_json)
+            if early_response is not None:
+                final_text = early_response
+                await self._working_status(updater, summarize_response(final_text))
+            else:
+                solver_backend = get_solver_backend(solver_backend_name)
+                final_text = await solver_backend.run(
+                    prompt,
+                    req_json,
+                    system_prompt=self.system_prompt,
+                    status=lambda text: self._working_status(updater, text),
+                    input_manifest=input_manifest,
+                    work_dir=work_dir,
+                )
 
             await updater.add_artifact(
                 parts=[Part(root=TextPart(kind="text", text=final_text))],

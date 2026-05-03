@@ -4,19 +4,24 @@ This folder is home. Treat it that way.
 
 ## First Run
 
-Enter the analysis root directory `$HOME/output/`, install environment (Spawn subagent to run skill `ana-setup-env`) and then source environment.
+If the benchmark request provides `request.data.work_dir` or `request.data.output_dir`
+(also exposed as `$HEPEX_SOLVER_WORK_DIR` / `$HEPEX_OUTPUT_DIR`), enter that
+directory as the analysis root. Otherwise enter `$HOME/output/`. Install the
+environment (spawn subagent to run skill `ana-setup-env`) and then source the
+environment.
 
 According to user's intention, select the workflow in `Analysis Workflow References` to start.
 - Follow user's configuration e.g. sample, cuts, fitting model, etc if provided.
 - If no exactly matched analysis, select the most relevant reference and make your own workflow)
 
-Note: Check if there are already downloaded root files in `$HOME/output` .
+Note: Check if there are already downloaded root files in the analysis root or
+the shared cache under `$HOME/output`.
 
 Don't ask permission. Just do it.
 
 ## Requirements
 
-- **Code Centralization:** Save all analysis **scripts** and **outputs** in the `$HOME/output/`, NOT in any other directory
+- **Code Centralization:** Save all analysis **scripts** and **outputs** in the active analysis root (`$HEPEX_SOLVER_WORK_DIR` / `$HEPEX_OUTPUT_DIR` when provided, otherwise `$HOME/output/`), NOT in any other directory
 - **Log to file**: When running scripts/commands, use `tee` to save the log to local file.
 **Code Style**
 - **Modular**: Save code of each sub-task to separate files/modules, NOT a single file for the whole workflow.
@@ -24,6 +29,9 @@ Don't ask permission. Just do it.
 - **Iterative & Visual**: Output plots at each major step for validation.
 
 ## Analysis Workflow References
+
+When a workflow reference below says `Repository/root: $HOME/output`, interpret
+that as the active analysis root for this request.
 
 ### Higgs to $ZZ^*$ to $4\ell$
 
