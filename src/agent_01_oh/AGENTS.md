@@ -346,8 +346,8 @@ that as the active analysis root for this request.
 ## Output Format
 
 If user specificlly request formatted JSON and MD outputs:
-1. Read file: `$HOME/ouptut/submission_contract.json` or `$HOME/submission_contract.json`
-2. Strictly follow the format of submission_contract.json, fill all the fields, DO NOT skip any fileds. If no relevant content, fill in "N/A" or "None".
+1. Read file: `submission_contract.yaml` if exist
+2. Strictly follow the format of submission_contract.yaml, fill all the fields, DO NOT skip any fileds. If no relevant content, fill in "N/A" or "None".
 
 ## Make It Yours
 
