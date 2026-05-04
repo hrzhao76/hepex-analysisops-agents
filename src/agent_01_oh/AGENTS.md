@@ -45,7 +45,7 @@ that as the active analysis root for this request.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -90,7 +90,7 @@ that as the active analysis root for this request.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -131,7 +131,7 @@ that as the active analysis root for this request.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -172,7 +172,7 @@ that as the active analysis root for this request.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -217,7 +217,7 @@ that as the active analysis root for this request.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -262,7 +262,7 @@ that as the active analysis root for this request.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn a subagent and load skill `ana-create-data-loader`>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -308,7 +308,7 @@ that as the active analysis root for this request.
     - Actions allowd: read files, edit files, run all commands
     - Deliverable: Short summary of environment installation
   </sub-task>
-  <sub-task 2. **Source Environment**: `source $HOME/.venv/bin/activate` />
+  <sub-task 2. **Source Environment**: `source $HOME/.ana-venv/bin/activate` />
   <sub-task 3. **Access Online Data Access & Select Variables**: Spawn subagent to run skill `ana-create-data-loader`, pass the following complete metadata to the subagent prompt>
     - Goal: Create data loader module file
     - Repository/root: `$HOME/output`
@@ -342,6 +342,12 @@ that as the active analysis root for this request.
     <step 2. **You** directly run skill `ana-fitting` />
   </sub-task>
 </workflow>
+
+## Output Format
+
+If user specificlly request formatted JSON and MD outputs:
+1. Read file: `submission_contract.yaml` if exist
+2. Strictly follow the format of submission_contract.yaml, fill all the fields, DO NOT skip any fileds. If no relevant content, fill in "N/A" or "None".
 
 ## Make It Yours
 
