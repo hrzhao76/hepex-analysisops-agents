@@ -22,6 +22,7 @@ from bundle_runtime import extract_required_output_names, request_mode
 logger = logging.getLogger(__name__)
 
 DEFAULT_SOLVER_BACKEND = "agent_1_oh"
+DEFAULT_EXECUTION_MODEL = "gpt-5"
 
 StatusCallback = Callable[[str], Awaitable[None]]
 
@@ -48,6 +49,73 @@ async def noop_status(_: str) -> None:
 
 def json_dump(payload: Any) -> str:
     return json.dumps(payload, ensure_ascii=False, indent=2)
+
+
+def requested_solver_model(req_json: dict[str, Any] | None) -> str | None:
+    if isinstance(req_json, dict):
+        constraints = req_json.get("constraints", {})
+        candidates = [
+            req_json.get("solver_model"),
+            req_json.get("solver_llm_model"),
+        ]
+        if isinstance(constraints, dict):
+            candidates.extend(
+                [
+                    constraints.get("solver_model"),
+                    constraints.get("solver_llm_model"),
+                ]
+            )
+        for candidate in candidates:
+            if isinstance(candidate, str) and candidate.strip():
+                return candidate.strip()
+    return None
+
+
+def resolve_solver_model(req_json: dict[str, Any] | None) -> str:
+    requested = requested_solver_model(req_json)
+    if requested:
+        return requested
+    return DEFAULT_EXECUTION_MODEL
+
+
+def apply_default_model_env(
+    env: dict[str, str],
+    model: str = DEFAULT_EXECUTION_MODEL,
+    *,
+    force: bool = False,
+) -> dict[str, str]:
+    if force:
+        env["HEPEX_AGENT_MODEL"] = model
+        env["HEPEX_OPENAI_MODEL"] = model
+        env["OPENHARNESS_MODEL"] = model
+    else:
+        env.setdefault("HEPEX_AGENT_MODEL", model)
+        env.setdefault("HEPEX_OPENAI_MODEL", model)
+        env.setdefault("OPENHARNESS_MODEL", model)
+    return env
+
+
+def apply_default_model_process_env(model: str = DEFAULT_EXECUTION_MODEL, *, force: bool = False) -> None:
+    if force:
+        os.environ["HEPEX_AGENT_MODEL"] = model
+        os.environ["HEPEX_OPENAI_MODEL"] = model
+        os.environ["OPENHARNESS_MODEL"] = model
+        os.environ["SCIFI_NATIVE_MODEL"] = model
+    else:
+        os.environ.setdefault("HEPEX_AGENT_MODEL", model)
+        os.environ.setdefault("HEPEX_OPENAI_MODEL", model)
+        os.environ.setdefault("OPENHARNESS_MODEL", model)
+
+
+def model_env_debug(env: dict[str, str]) -> str:
+    return json_dump(
+        {
+            "HEPEX_AGENT_MODEL": env.get("HEPEX_AGENT_MODEL"),
+            "HEPEX_OPENAI_MODEL": env.get("HEPEX_OPENAI_MODEL"),
+            "OPENHARNESS_MODEL": env.get("OPENHARNESS_MODEL"),
+            "SCIFI_NATIVE_MODEL": env.get("SCIFI_NATIVE_MODEL"),
+        }
+    )
 
 
 def format_bytes(value: int | float | None) -> str:
@@ -351,7 +419,12 @@ class OpenHarnessSolverBackend:
         final_text = None
         if work_dir is None:
             work_dir = resolve_work_dir(req_json)
-        env = os.environ.copy()
+        req_model = requested_solver_model(req_json)
+        env = apply_default_model_env(
+            os.environ.copy(),
+            req_model or DEFAULT_EXECUTION_MODEL,
+            force=req_model is not None,
+        )
         if work_dir is not None:
             env["HEPEX_SOLVER_WORK_DIR"] = str(work_dir)
             env["HEPEX_OUTPUT_DIR"] = str(work_dir)
@@ -380,6 +453,7 @@ class OpenHarnessSolverBackend:
                     [
                         ("--- Backend ---", self.name),
                         ("--- Request Metadata ---", json_dump(req_json or {})),
+                        ("--- Model Environment ---", model_env_debug(env)),
                         ("--- Attempt ---", str(attempt + 1)),
                         ("--- Work Dir ---", str(work_dir or Path.cwd())),
                         ("--- Prompt ---", prompt),
@@ -526,7 +600,12 @@ class SciFiOhLoopSolverBackend:
         del system_prompt
         if work_dir is None:
             work_dir = resolve_work_dir(req_json)
-        env = os.environ.copy()
+        req_model = requested_solver_model(req_json)
+        env = apply_default_model_env(
+            os.environ.copy(),
+            req_model or DEFAULT_EXECUTION_MODEL,
+            force=req_model is not None,
+        )
         if work_dir is not None:
             env["HEPEX_SOLVER_WORK_DIR"] = str(work_dir)
             env["HEPEX_OUTPUT_DIR"] = str(work_dir)
@@ -573,6 +652,7 @@ class SciFiOhLoopSolverBackend:
                     ("--- Backend ---", self.name),
                     ("--- Worker Executor ---", "openharness"),
                     ("--- Request Metadata ---", json_dump(req_json or {})),
+                    ("--- Model Environment ---", model_env_debug(env)),
                     ("--- SciFi-OH Attempt ---", str(attempt)),
                     ("--- Work Dir ---", str(work_dir or Path.cwd())),
                     ("--- SAM Prompt ---", sam_prompt),
@@ -709,6 +789,11 @@ class SciFiNativeSolverBackend:
         del system_prompt
         if work_dir is None:
             work_dir = resolve_work_dir(req_json)
+        req_model = requested_solver_model(req_json)
+        apply_default_model_process_env(
+            req_model or DEFAULT_EXECUTION_MODEL,
+            force=req_model is not None,
+        )
         if work_dir is not None:
             os.environ["HEPEX_SOLVER_WORK_DIR"] = str(work_dir)
             os.environ["HEPEX_OUTPUT_DIR"] = str(work_dir)
