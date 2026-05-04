@@ -2,7 +2,8 @@
 
 `agent_03b_scifi_native` is the general native SciFi-style backend. It keeps the
 same Green/Purple wire format, SAM loop, independent review, retry feedback,
-and native Python tool execution as `agent_03a_scifi_native`.
+and native Python tool execution pattern as `03a`, but owns its package-local
+`loop.py`, `native_worker.py`, and prompt builder.
 
 The difference is that `03b` uses a task-agnostic SAM prompt. It relies on the
 task prompt, submission contract, runtime manifest, generic tool loop, and

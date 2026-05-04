@@ -11,7 +11,7 @@ branch-v2 runtime ideas that are useful inside the Purple Agent:
 - Native tool loop without OpenHarness.
 - Shared environment discovery and activation tools.
 - Deterministic compacting for long tool outputs.
-- Independent review and retry through the shared SciFi loop.
+- Independent review and retry through its package-local SciFi loop.
 
 It intentionally does not vendor the full SciFi Apptainer/Pam/Cam scheduler.
 Those are outside the Purple Agent runtime boundary.
@@ -39,4 +39,3 @@ Debug log:
 ```text
 <solver_work>/debug_scifi_native_output.log
 ```
-

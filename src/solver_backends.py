@@ -8,8 +8,13 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Protocol
 
 from agent_02_scifi_oh.loop import SciFiLoop
-from agent_03a_scifi_native.native_worker import NativeSciFiWorker
+from agent_03a_scifi_native.loop import NativeSciFiLoop as NativeSciFiLoop03A
+from agent_03a_scifi_native.native_worker import NativeSciFiWorker as NativeSciFiWorker03A
+from agent_03b_scifi_native.loop import NativeSciFiLoop as NativeSciFiLoop03B
+from agent_03b_scifi_native.native_worker import NativeSciFiWorker as NativeSciFiWorker03B
 from agent_03b_scifi_native.prompt_builder import build_general_sam_prompt
+from agent_03c_scifi_native.loop import NativeSciFiLoop as NativeSciFiLoop03C
+from agent_03c_scifi_native.native_worker import NativeSciFiWorker as NativeSciFiWorker03C
 from agent_03c_scifi_native.prompt_builder import build_v2_sam_prompt
 from bundle_runtime import extract_required_output_names, request_mode
 
@@ -670,12 +675,16 @@ class SciFiNativeSolverBackend:
         name: str = "agent_3a_scifi_native",
         prompt_package: str = "agent_03a_scifi_native",
         prompt_builder: Callable[..., str] | None = None,
+        loop_class: Callable[..., Any] = NativeSciFiLoop03A,
+        worker_class: Callable[..., Any] = NativeSciFiWorker03A,
         enable_scifi_v2_tools: bool = False,
-        loop_label: str = "SciFi-OH loop",
+        loop_label: str = "SciFi-native loop",
     ) -> None:
         self.name = name
         self.prompt_package = prompt_package
         self.prompt_builder = prompt_builder
+        self.loop_class = loop_class
+        self.worker_class = worker_class
         self.enable_scifi_v2_tools = enable_scifi_v2_tools
         self.loop_label = loop_label
 
@@ -739,7 +748,7 @@ class SciFiNativeSolverBackend:
                 ],
             )
 
-            native_worker = NativeSciFiWorker(
+            native_worker = self.worker_class(
                 system_prompt=native_system_prompt,
                 req_json=req_json,
                 input_manifest=input_manifest,
@@ -789,7 +798,7 @@ class SciFiNativeSolverBackend:
         }
         if self.prompt_builder is not None:
             loop_kwargs["prompt_builder"] = self.prompt_builder
-        loop = SciFiLoop(**loop_kwargs)
+        loop = self.loop_class(**loop_kwargs)
         result = await loop.run(
             base_prompt=prompt,
             req_json=req_json,
@@ -812,12 +821,16 @@ _SCIFI_NATIVE_03B = SciFiNativeSolverBackend(
     name="agent_3b_scifi_native",
     prompt_package="agent_03b_scifi_native",
     prompt_builder=build_general_sam_prompt,
+    loop_class=NativeSciFiLoop03B,
+    worker_class=NativeSciFiWorker03B,
     loop_label="SciFi-native general loop",
 )
 _SCIFI_NATIVE_03C = SciFiNativeSolverBackend(
     name="agent_3c_scifi_native",
     prompt_package="agent_03c_scifi_native",
     prompt_builder=build_v2_sam_prompt,
+    loop_class=NativeSciFiLoop03C,
+    worker_class=NativeSciFiWorker03C,
     enable_scifi_v2_tools=True,
     loop_label="SciFi-native v2 loop",
 )
