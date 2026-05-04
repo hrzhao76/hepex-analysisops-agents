@@ -433,6 +433,7 @@ async def test_scifi_native_backend_retries_without_openharness(tmp_path, monkey
 async def test_scifi_native_general_backend_uses_model_loop(tmp_path, monkeypatch):
     req = _l1_request(tmp_path)
     req["constraints"]["solver_backend"] = "agent_3b_scifi_native"
+    req["solver_model"] = "gpt-5"
     manifest = _manifest(tmp_path)
     work_dir = tmp_path / "solver_work"
     work_dir.mkdir()
@@ -445,8 +446,8 @@ async def test_scifi_native_general_backend_uses_model_loop(tmp_path, monkeypatc
 
     class FakeCompletions:
         def create(self, **kwargs):
-            del kwargs
             calls["count"] += 1
+            assert kwargs["model"] == "gpt-5"
             return _FakeResponse(_FakeToolCall("done", {"final_json": _bundle(_valid_l1_artifacts())}))
 
     class FakeChat:
@@ -460,6 +461,10 @@ async def test_scifi_native_general_backend_uses_model_loop(tmp_path, monkeypatc
 
     monkeypatch.setattr("agent_03b_scifi_native.native_worker.OpenAI", FakeOpenAI)
     monkeypatch.setenv("SCIFI_NATIVE_MAX_RETRIES", "1")
+    monkeypatch.setenv("SCIFI_NATIVE_MODEL", "older-model")
+    monkeypatch.setenv("HEPEX_AGENT_MODEL", "older-model")
+    monkeypatch.setenv("HEPEX_OPENAI_MODEL", "older-model")
+    monkeypatch.setenv("OPENHARNESS_MODEL", "older-model")
 
     final_text = await backend.run(
         "Base benchmark prompt",
@@ -537,6 +542,7 @@ async def test_scifi_native_v2_backend_uses_model_loop_and_v2_tools(tmp_path, mo
     class FakeCompletions:
         def create(self, **kwargs):
             calls["count"] += 1
+            assert kwargs["model"] == "gpt-5"
             tool_names = {tool["function"]["name"] for tool in kwargs["tools"]}
             assert "list_shared_envs" in tool_names
             if calls["count"] == 1:
@@ -558,6 +564,10 @@ async def test_scifi_native_v2_backend_uses_model_loop_and_v2_tools(tmp_path, mo
 
     monkeypatch.setattr("agent_03c_scifi_native.native_worker.OpenAI", FakeOpenAI)
     monkeypatch.setenv("SCIFI_NATIVE_MAX_RETRIES", "1")
+    monkeypatch.delenv("SCIFI_NATIVE_MODEL", raising=False)
+    monkeypatch.delenv("HEPEX_AGENT_MODEL", raising=False)
+    monkeypatch.delenv("HEPEX_OPENAI_MODEL", raising=False)
+    monkeypatch.delenv("OPENHARNESS_MODEL", raising=False)
 
     final_text = await backend.run(
         "Base benchmark prompt",

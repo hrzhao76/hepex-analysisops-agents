@@ -113,6 +113,7 @@ async def test_submission_bundle_call_white_augments_prompt_and_preserves_oh_inv
     manifest_path = _write_manifest(tmp_path)
     work_dir = tmp_path / "solver_work"
     payload = _bundle_request(manifest_path, mode="call_white", work_dir=work_dir)
+    payload["solver_model"] = "gpt-5"
     updater = DummyUpdater()
     captured: dict[str, object] = {}
 
@@ -176,6 +177,9 @@ async def test_submission_bundle_call_white_augments_prompt_and_preserves_oh_inv
         return FakeProcess()
 
     monkeypatch.setattr("solver_backends.asyncio.create_subprocess_exec", fake_create_subprocess_exec)
+    monkeypatch.setenv("HEPEX_AGENT_MODEL", "older-model")
+    monkeypatch.setenv("HEPEX_OPENAI_MODEL", "older-model")
+    monkeypatch.setenv("OPENHARNESS_MODEL", "older-model")
 
     await PurpleAgent().run(new_agent_text_message(json.dumps(payload)), updater)
 
@@ -198,6 +202,9 @@ async def test_submission_bundle_call_white_augments_prompt_and_preserves_oh_inv
     assert captured["kwargs"]["cwd"] == str(work_dir)
     assert captured["kwargs"]["env"]["HEPEX_SOLVER_WORK_DIR"] == str(work_dir)
     assert captured["kwargs"]["env"]["HEPEX_OUTPUT_DIR"] == str(work_dir)
+    assert captured["kwargs"]["env"]["HEPEX_AGENT_MODEL"] == "gpt-5"
+    assert captured["kwargs"]["env"]["HEPEX_OPENAI_MODEL"] == "gpt-5"
+    assert captured["kwargs"]["env"]["OPENHARNESS_MODEL"] == "gpt-5"
     assert work_dir.is_dir()
     status_text = "\n".join(updater.status_messages)
     assert "Task request: task_id=t002_hyy_v5_l1" in status_text
