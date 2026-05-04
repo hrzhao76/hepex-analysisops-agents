@@ -40,7 +40,7 @@ ENV HOME=/home/agent
 # ----------------------------
 RUN python -m venv .ana-venv \
  && source .ana-venv/bin/activate \
- && pip install xrootd atlasopenmagic uproot awkward vector matplotlib mplhep pyyaml tqdm 'pyhf[backends]' coffea\
+ && pip install atlasopenmagic uproot awkward vector matplotlib mplhep pyyaml tqdm pyhf coffea\
  && python3 -c "import sys; from atlasopenmagic import install_from_environment; install_from_environment()"
 
 # ----------------------------
