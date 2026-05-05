@@ -37,9 +37,10 @@ flowchart LR
   end
 
   subgraph SOH["agent_2_scifi_oh"]
-    S1["SAM prompt"] --> S2["OpenHarness worker"] --> S3["review"]
-    S3 -->|"retry"| S1
-    S3 -->|"pass"| S4["bundle"]
+    S1["SAM prompt"] --> S2["HEPEx skill injection"] --> S3["OpenHarness worker"]
+    S3 --> S4["review + retry"]
+    S4 -->|"pass"| S5["bundle"]
+    S4 -->|"retry"| S1
   end
 
   subgraph NS["agent_3b / agent_3c"]
